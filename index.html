@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>斗燈系統 · 神奇身心靈學苑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --ink: #1a1f2e;
+    --ink-2: #2a3142;
+    --paper: #f7f4ed;
+    --paper-2: #ede8db;
+    --gold: #c9a449;
+    --gold-light: #e8c97a;
+    --indigo: #3a4a6b;
+    --vermillion: #b85450;
+  }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(201, 164, 73, 0.1), transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(58, 74, 107, 0.08), transparent 50%),
+      var(--paper);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 720px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .brand {
+    margin-bottom: 60px;
+  }
+
+  .brand-mark {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 14px;
+    color: var(--gold);
+    letter-spacing: 0.4em;
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+
+  .brand-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 44px;
+    font-weight: 900;
+    color: var(--ink);
+    letter-spacing: 0.15em;
+    margin-bottom: 8px;
+  }
+
+  .brand-subtitle {
+    font-size: 14px;
+    color: var(--ink-2);
+    letter-spacing: 0.2em;
+    opacity: 0.7;
+  }
+
+  .ornament {
+    width: 80px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 24px auto;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  @media (min-width: 640px) {
+    .cards { grid-template-columns: repeat(2, 1fr); max-width: none; }
+    .brand-title { font-size: 56px; }
+  }
+
+  .card {
+    background: white;
+    border-radius: 4px;
+    padding: 36px 28px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 4px 16px rgba(26,31,46,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+    border-top: 3px solid transparent;
+    text-align: left;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(26,31,46,0.12);
+  }
+
+  .card.teacher { border-top-color: var(--gold); }
+  .card.admin { border-top-color: var(--vermillion); }
+
+  .card-icon {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 32px;
+    font-weight: 900;
+    margin-bottom: 16px;
+    line-height: 1;
+  }
+
+  .card.teacher .card-icon { color: var(--gold); }
+  .card.admin .card-icon { color: var(--vermillion); }
+
+  .card-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: 0.05em;
+  }
+
+  .card-subtitle {
+    font-size: 13px;
+    color: var(--ink-2);
+    opacity: 0.7;
+    margin-bottom: 16px;
+    letter-spacing: 0.05em;
+  }
+
+  .card-features {
+    list-style: none;
+    font-size: 14px;
+    color: var(--ink-2);
+    line-height: 2;
+  }
+
+  .card-features li {
+    position: relative;
+    padding-left: 16px;
+  }
+
+  .card-features li::before {
+    content: '·';
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+    font-weight: 900;
+  }
+
+  .footer {
+    margin-top: 48px;
+    font-size: 12px;
+    color: var(--ink-2);
+    opacity: 0.5;
+    letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="brand">
+    <div class="brand-mark">M I I R A G I C</div>
+    <h1 class="brand-title">斗 燈 系 統</h1>
+    <div class="ornament"></div>
+    <div class="brand-subtitle">神 奇 身 心 靈 學 苑 × 靈 應 壇</div>
+  </div>
+
+  <div class="cards">
+    <a href="./teacher/" class="card teacher">
+      <div class="card-icon">壹</div>
+      <div class="card-title">老 師 介 面</div>
+      <div class="card-subtitle">查 詢 · 明 細 · 業 績</div>
+      <ul class="card-features">
+        <li>本月燒化清單</li>
+        <li>本月撤斗提醒</li>
+        <li>年度業績走勢</li>
+        <li>客戶完整資料</li>
+      </ul>
+    </a>
+
+    <a href="./admin/" class="card admin">
+      <div class="card-icon">貳</div>
+      <div class="card-title">文 務 後 台</div>
+      <div class="card-subtitle">輸 入 · 編 輯 · 管 理</div>
+      <ul class="card-features">
+        <li>新增包年合約</li>
+        <li>新增斗燈紀錄</li>
+        <li>修改/刪除資料</li>
+        <li>批次客戶管理</li>
+      </ul>
+    </a>
+  </div>
+
+  <div class="footer">© 神奇身心靈學苑 內 部 系 統</div>
+</div>
+
+</body>
+</html>
