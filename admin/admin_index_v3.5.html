@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>斗燈系統 · 行政後台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg-paper: #f5f0e6; --bg-card: #fffdf8; --bg-input: #fbf8f1;
+      --ink: #2a2522; --ink-light: #6b6359; --ink-faint: #a89f93;
+      --gold: #b8954e; --gold-deep: #8e7237;
+      --crimson: #993333; --crimson-soft: #b85454;
+      --line: #d8cdb8; --line-soft: #e8dfc9;
+      --shadow: 0 1px 3px rgba(80, 60, 30, 0.08), 0 4px 12px rgba(80, 60, 30, 0.05);
+    }
+    body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg-paper); color: var(--ink); min-height: 100vh; font-size: 15px; line-height: 1.6; }
+    .serif { font-family: 'Noto Serif TC', serif; }
+    
+    #login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .login-card { width: 100%; max-width: 400px; background: var(--bg-card); padding: 48px 40px; box-shadow: var(--shadow); border-top: 3px solid var(--crimson); }
+    .login-title { font-family: 'Noto Serif TC', serif; font-size: 32px; font-weight: 600; letter-spacing: 4px; margin-bottom: 4px; }
+    .login-subtitle { font-size: 13px; color: var(--ink-light); letter-spacing: 4px; margin-bottom: 32px; }
+    .form-label { display: block; font-size: 14px; color: var(--ink-light); margin-bottom: 8px; letter-spacing: 1px; }
+    .form-input, .form-select { width: 100%; padding: 12px 16px; background: var(--bg-input); border: 1px solid var(--line); font-size: 15px; font-family: inherit; color: var(--ink); transition: border-color 0.15s; }
+    .form-input:focus, .form-select:focus { outline: none; border-color: var(--gold); }
+    .form-group { margin-bottom: 20px; }
+    .btn { display: inline-block; padding: 12px 32px; background: var(--ink); color: var(--bg-card); border: none; font-family: inherit; font-size: 15px; letter-spacing: 4px; cursor: pointer; transition: background 0.15s; }
+    .btn:hover { background: #444; }
+    .btn-block { width: 100%; }
+    .btn-gold { background: var(--gold); }
+    .btn-gold:hover { background: var(--gold-deep); }
+    .btn-crimson { background: var(--crimson); }
+    .btn-crimson:hover { background: #7a2828; }
+    .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+    .btn-ghost:hover { background: var(--bg-input); }
+    .btn-sm { padding: 6px 16px; font-size: 13px; letter-spacing: 1px; }
+    .error-msg { color: var(--crimson); font-size: 13px; margin-top: 12px; min-height: 20px; }
+    
+    #main-screen { display: none; }
+    .topbar { background: var(--ink); color: var(--bg-paper); padding: 12px 32px; display: flex; justify-content: space-between; align-items: center; }
+    .topbar-title { font-family: 'Noto Serif TC', serif; font-size: 16px; letter-spacing: 6px; }
+    .topbar-right { display: flex; align-items: center; gap: 16px; font-size: 14px; }
+    .logout-btn { padding: 4px 16px; border: 1px solid var(--crimson-soft); color: var(--crimson-soft); background: transparent; cursor: pointer; font-family: inherit; font-size: 13px; letter-spacing: 1px; }
+    .logout-btn:hover { background: var(--crimson-soft); color: var(--ink); }
+    
+    .tabs { display: flex; background: var(--bg-card); border-bottom: 1px solid var(--line); padding: 0 32px; overflow-x: auto; }
+    .tab { padding: 16px 24px; cursor: pointer; font-size: 15px; color: var(--ink-light); border-bottom: 2px solid transparent; transition: all 0.15s; white-space: nowrap; }
+    .tab:hover { color: var(--ink); }
+    .tab.active { color: var(--ink); border-bottom-color: var(--crimson); font-weight: 500; }
+    
+    .content { padding: 32px; max-width: 1400px; margin: 0 auto; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .panel-title { font-family: 'Noto Serif TC', serif; font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+    .panel-desc { color: var(--ink-light); font-size: 14px; margin-bottom: 24px; }
+    
+    .card { background: var(--bg-card); padding: 32px; box-shadow: var(--shadow); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-grid-full { grid-column: 1 / -1; }
+    @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-actions { margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end; }
+    
+    .id-display { padding: 12px 16px; background: #fff5e0; border: 1px solid var(--gold); color: var(--gold-deep); font-family: 'Courier New', monospace; font-weight: 600; font-size: 16px; letter-spacing: 2px; }
+    .id-display.loading, .id-display.empty { color: var(--ink-faint); font-family: inherit; font-style: italic; font-weight: normal; letter-spacing: normal; }
+    
+    /* 卡片網格（縮小版） */
+    .search-bar {
+      display: flex; gap: 12px; align-items: center; margin-bottom: 20px;
+      padding: 14px 20px; background: var(--bg-card); box-shadow: var(--shadow);
+    }
+    .search-bar input {
+      flex: 1; padding: 8px 14px; background: var(--bg-input); border: 1px solid var(--line);
+      font-family: inherit; font-size: 14px;
+    }
+    .search-bar input:focus { outline: none; border-color: var(--gold); }
+    
+    .teacher-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px; margin-bottom: 24px;
+    }
+    .teacher-card {
+      background: var(--bg-card); padding: 12px 14px; cursor: pointer;
+      transition: all 0.2s; border-left: 3px solid transparent; box-shadow: var(--shadow);
+      position: relative; min-height: 70px;
+    }
+    .teacher-card:hover { border-left-color: var(--gold); transform: translateY(-1px); }
+    .teacher-card.active { border-left-color: var(--crimson); background: #fff8ed; }
+    .teacher-card-name {
+      font-family: 'Noto Serif TC', serif; font-size: 15px; font-weight: 600;
+      margin-bottom: 4px; padding-right: 30px;
+    }
+    .teacher-card-stat {
+      display: flex; justify-content: space-between; align-items: baseline;
+      font-size: 12px; color: var(--ink-light);
+    }
+    .teacher-card-stat .num {
+      font-family: 'Noto Serif TC', serif; font-size: 17px; color: var(--ink); font-weight: 600;
+    }
+    .teacher-card-num {
+      position: absolute; top: 8px; right: 32px;
+      font-family: 'Courier New', monospace; font-size: 10px; color: var(--gold-deep);
+      background: #fff5e0; padding: 1px 5px; border-radius: 8px;
+    }
+    .teacher-card-abbr {
+      position: absolute; bottom: 8px; right: 12px;
+      font-family: 'Courier New', monospace; font-size: 10px; color: var(--ink-faint);
+    }
+    .teacher-card-delete {
+      position: absolute; top: 6px; right: 6px;
+      width: 18px; height: 18px; line-height: 16px; text-align: center;
+      font-size: 11px; color: var(--ink-faint); cursor: pointer;
+      border-radius: 50%; transition: all 0.15s;
+    }
+    .teacher-card-delete:hover { background: var(--crimson); color: white; }
+    .teacher-card-add {
+      background: transparent; border: 2px dashed var(--line);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; min-height: 70px; color: var(--ink-faint);
+      font-size: 13px; transition: all 0.2s;
+    }
+    .teacher-card-add:hover { border-color: var(--gold); color: var(--gold-deep); background: var(--bg-card); }
+    
+    .teacher-detail {
+      background: var(--bg-card); padding: 20px 28px; box-shadow: var(--shadow);
+      margin-top: 16px; display: none;
+    }
+    .teacher-detail.show { display: block; }
+    .teacher-detail-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--line-soft);
+    }
+    .teacher-detail-name { font-family: 'Noto Serif TC', serif; font-size: 20px; font-weight: 600; }
+    
+    /* 客戶搜尋結果 */
+    .search-results {
+      background: var(--bg-card); padding: 20px 28px; box-shadow: var(--shadow); margin-top: 16px;
+    }
+    .search-results-title {
+      font-size: 15px; color: var(--ink-light); margin-bottom: 12px; letter-spacing: 1px;
+    }
+    
+    .data-table { width: 100%; background: var(--bg-card); border-collapse: collapse; }
+    .data-table th, .data-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--line-soft); font-size: 13px; }
+    .data-table th { background: var(--bg-input); font-weight: 600; color: var(--ink-light); font-size: 12px; letter-spacing: 1px; }
+    .data-table tr:hover td { background: #faf6ec; }
+    .data-table tr.clickable { cursor: pointer; }
+    .data-table .actions button {
+      padding: 3px 8px; font-size: 11px; margin-right: 3px;
+      background: transparent; border: 1px solid var(--line); cursor: pointer; font-family: inherit;
+    }
+    .data-table .actions button:hover { background: var(--bg-input); }
+    .data-table .actions .delete:hover { background: var(--crimson); color: white; border-color: var(--crimson); }
+    
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); padding: 20px 24px; border-left: 3px solid var(--gold); }
+    .stat-card.crimson { border-left-color: var(--crimson); }
+    .stat-label { font-size: 13px; color: var(--ink-light); letter-spacing: 1px; margin-bottom: 6px; }
+    .stat-value { font-family: 'Noto Serif TC', serif; font-size: 28px; font-weight: 600; }
+    
+    .filter-row { display: flex; gap: 16px; align-items: center; margin-bottom: 24px; padding: 16px 24px; background: var(--bg-card); box-shadow: var(--shadow); flex-wrap: wrap; }
+    .filter-row label { font-size: 14px; color: var(--ink-light); white-space: nowrap; }
+    .filter-row input, .filter-row select { padding: 6px 12px; background: var(--bg-input); border: 1px solid var(--line); font-family: inherit; font-size: 14px; }
+    
+    .badge { display: inline-block; padding: 2px 10px; font-size: 12px; border-radius: 12px; letter-spacing: 1px; }
+    .badge-active { background: #e8f0e0; color: #4a6e2e; }
+    .badge-warn { background: #fff0e0; color: #b87737; }
+    .badge-expire { background: #f0e0e0; color: var(--crimson); }
+    .badge-info { background: #e0e8f0; color: #2e4a6e; }
+    
+    .toast { position: fixed; top: 24px; right: 24px; padding: 16px 24px; background: var(--ink); color: var(--bg-card); box-shadow: 0 4px 16px rgba(0,0,0,0.2); z-index: 100; max-width: 400px; transform: translateX(120%); transition: transform 0.3s ease; }
+    .toast.show { transform: translateX(0); }
+    .toast.success { background: #4a6e2e; }
+    .toast.error { background: var(--crimson); }
+    
+    .empty-hint { text-align: center; padding: 60px 24px; color: var(--ink-faint); background: var(--bg-card); }
+    .empty-hint .big { font-family: 'Noto Serif TC', serif; font-size: 32px; color: var(--ink-light); margin-bottom: 12px; }
+    
+    .modal-bg { display: none; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; padding: 24px; }
+    .modal-bg.show { display: flex; }
+    .modal { background: var(--bg-card); max-width: 600px; width: 100%; padding: 32px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .modal-title { font-family: 'Noto Serif TC', serif; font-size: 22px; font-weight: 600; margin-bottom: 16px; }
+    
+    .lamp-card { padding: 10px 14px; background: var(--bg-input); margin-bottom: 6px; font-size: 13px; }
+    .lamp-card strong { color: var(--gold-deep); font-family: 'Courier New', monospace; }
+  </style>
+</head>
+<body>
+  <div id="login-screen">
+    <div class="login-card">
+      <h1 class="login-title">斗燈系統</h1>
+      <p class="login-subtitle serif">行 政 後 台</p>
+      <div class="form-group">
+        <label class="form-label">密碼</label>
+        <input type="password" id="password-input" class="form-input" placeholder="輸入密碼" autocomplete="off">
+      </div>
+      <button id="login-btn" class="btn btn-block btn-crimson">進　入</button>
+      <p id="login-error" class="error-msg"></p>
+    </div>
+  </div>
+
+  <div id="main-screen">
+    <div class="topbar">
+      <div class="topbar-title">斗 燈 ・ 行政後台</div>
+      <div class="topbar-right">
+        <span>行政管理員</span>
+        <button id="logout-btn" class="logout-btn">登出</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" data-panel="panel-customers">客戶資料</div>
+      <div class="tab" data-panel="panel-active">目前點燈中</div>
+      <div class="tab" data-panel="panel-burn">本月燒化</div>
+      <div class="tab" data-panel="panel-retire">本月撤斗</div>
+      <div class="tab" data-panel="panel-trend">包年業績</div>
+      <div class="tab" data-panel="panel-add-baonian">＋ 新增包年</div>
+      <div class="tab" data-panel="panel-add-doudeng">＋ 新增斗燈</div>
+    </div>
+
+    <div class="content">
+      <!-- 客戶資料 -->
+      <div id="panel-customers" class="panel active">
+        <h2 class="panel-title">客戶資料</h2>
+        <p class="panel-desc">點選老師卡片展開該老師客戶。可搜尋老師名或客戶名/ID。</p>
+        
+        <div id="customers-summary" style="display:flex; gap:24px; padding:16px 20px; background:linear-gradient(135deg, var(--gold-deep) 0%, var(--gold) 100%); border-radius:12px; margin-bottom:16px; color:#fff; font-weight:500; flex-wrap:wrap;">
+          <div><span style="opacity:.85; font-size:13px;">包年客戶總數</span><br><span style="font-size:24px; font-weight:700;" id="sum-customers">—</span> 人</div>
+          <div><span style="opacity:.85; font-size:13px;">合約份數</span><br><span style="font-size:24px; font-weight:700;" id="sum-contracts">—</span> 份</div>
+          <div><span style="opacity:.85; font-size:13px;">總月費</span><br><span style="font-size:24px; font-weight:700;" id="sum-monthly">—</span></div>
+          <div><span style="opacity:.85; font-size:13px;">總年費</span><br><span style="font-size:24px; font-weight:700;" id="sum-yearly">—</span></div>
+        </div>
+        
+        <div class="search-bar">
+          <input type="text" id="global-search" placeholder="🔍 搜尋老師、客戶姓名、客戶 ID...">
+          <button class="btn btn-ghost btn-sm" onclick="doGlobalSearch()">搜尋</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearGlobalSearch()">清除</button>
+        </div>
+        
+        <div id="teacher-grid" class="teacher-grid">
+          <div class="empty-hint" style="grid-column:1/-1;">載入中...</div>
+        </div>
+        <div id="teacher-detail" class="teacher-detail"></div>
+        <div id="search-results" style="display:none;"></div>
+      </div>
+      
+      <!-- 目前點燈中 -->
+      <div id="panel-active" class="panel">
+        <h2 class="panel-title">目前點燈中</h2>
+        <p class="panel-desc">所有「未撤」狀態的斗燈總覽。可篩選老師、搜尋客戶名/編號。</p>
+        
+        <div id="active-summary" style="display:flex; gap:18px; padding:16px 20px; background:linear-gradient(135deg, var(--gold-deep) 0%, var(--gold) 100%); border-radius:12px; margin-bottom:16px; color:#fff; font-weight:500; flex-wrap:wrap;">
+          <div><span style="opacity:.85; font-size:13px;">點燈中總數</span><br><span style="font-size:24px; font-weight:700;" id="ac-total">—</span> 盞</div>
+          <div><span style="opacity:.85; font-size:13px;">年斗類</span><br><span style="font-size:24px; font-weight:700;" id="ac-year">—</span> 盞</div>
+          <div><span style="opacity:.85; font-size:13px;">季斗</span><br><span style="font-size:24px; font-weight:700;" id="ac-season">—</span> 盞</div>
+          <div><span style="opacity:.85; font-size:13px;">本月將到期</span><br><span style="font-size:24px; font-weight:700;" id="ac-expiring">—</span> 盞</div>
+          <div><span style="opacity:.85; font-size:13px;">已過期未撤</span><br><span style="font-size:24px; font-weight:700;" id="ac-overdue">—</span> 盞</div>
+          <div><span style="opacity:.85; font-size:13px;">含令牌</span><br><span style="font-size:24px; font-weight:700;" id="ac-lingpai">—</span> 盞</div>
+        </div>
+        
+        <div class="filter-row" style="margin-bottom:12px;">
+          <label>老師</label>
+          <select id="active-filter-teacher" onchange="renderActiveLamps()" style="margin-right:12px;">
+            <option value="">全部</option>
+          </select>
+          <label>類型</label>
+          <select id="active-filter-type" onchange="renderActiveLamps()" style="margin-right:12px;">
+            <option value="">全部</option>
+            <option value="包年贈送">包年贈送</option>
+            <option value="單筆加購">單筆加購</option>
+            <option value="單購">單購</option>
+            <option value="季斗">季斗</option>
+            <option value="奇門年斗">奇門年斗</option>
+            <option value="奇門季斗">奇門季斗</option>
+          </select>
+          <input type="text" id="active-filter-search" placeholder="🔍 客戶/編號" oninput="renderActiveLamps()" style="flex:1; padding:6px 10px; border:1px solid var(--border); border-radius:6px;">
+        </div>
+        
+        <div id="active-list">
+          <div class="empty-hint">點此 tab 自動載入...</div>
+        </div>
+      </div>
+      
+      <!-- 新增包年 -->
+      <div id="panel-add-baonian" class="panel">
+        <h2 class="panel-title">新增包年合約</h2>
+        <p class="panel-desc">替老師代填，請選擇所屬老師後系統自動產生客戶 ID。</p>
+        <div class="card">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">所屬老師 *</label>
+              <select id="bn-teacher" class="form-select">
+                <option value="">— 選擇老師 —</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">客戶 ID（自動產生）</label>
+              <div id="next-id-baonian" class="id-display empty">請先選擇老師</div>
+            </div>
+            <div class="form-group form-grid-full">
+              <label class="form-label">客戶姓名 *</label>
+              <input type="text" id="bn-name" class="form-input" placeholder="王小明">
+            </div>
+            <div class="form-group">
+              <label class="form-label">月費 *</label>
+              <select id="bn-fee" class="form-select">
+                <option value="">— 選擇 —</option>
+                <option value="2100">2,100</option>
+                <option value="3000">3,000</option>
+                <option value="4200">4,200</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">起始月份 *</label>
+              <input type="month" id="bn-start" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label">首付日期 *</label>
+              <input type="date" id="bn-pay" class="form-input">
+            </div>
+            <div class="form-group" id="gift-group" style="display:none;">
+              <label class="form-label">贈送年斗（4,200 月費限定）*</label>
+              <select id="bn-gift" class="form-select">
+                <option value="">— 選擇 —</option>
+                <option value="財神斗">財神斗</option>
+                <option value="化煞斗">化煞斗</option>
+                <option value="貴人斗">貴人斗</option>
+                <option value="開運斗">開運斗</option>
+                <option value="姻緣斗">姻緣斗</option>
+              </select>
+            </div>
+            <div class="form-group form-grid-full">
+              <label class="form-label">備註</label>
+              <textarea id="bn-note" class="form-input" rows="2" placeholder="可填特殊備註"></textarea>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-ghost" onclick="resetBaonianForm()">清空</button>
+            <button class="btn btn-crimson" id="submit-baonian">新　增　包　年</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 新增斗燈 -->
+      <div id="panel-add-doudeng" class="panel">
+        <h2 class="panel-title">新增斗燈</h2>
+        <p class="panel-desc">替老師代填，所有斗種皆可加購令牌（選填）。</p>
+        <div class="card">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">所屬老師 *</label>
+              <select id="dd-teacher" class="form-select">
+                <option value="">— 選擇老師 —</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">客戶 ID（自動產生）</label>
+              <div id="next-id-doudeng" class="id-display empty">請先選擇老師</div>
+            </div>
+            <div class="form-group form-grid-full">
+              <label class="form-label">客戶姓名 *</label>
+              <input type="text" id="dd-name" class="form-input" placeholder="王小明">
+            </div>
+            <div class="form-group">
+              <label class="form-label">斗種 *</label>
+              <select id="dd-doutype" class="form-select">
+                <option value="">— 選擇 —</option>
+                <option value="財神斗">財神斗</option>
+                <option value="化煞斗">化煞斗</option>
+                <option value="貴人斗">貴人斗</option>
+                <option value="開運斗">開運斗</option>
+                <option value="姻緣斗">姻緣斗</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">類型 *</label>
+              <select id="dd-type" class="form-select">
+                <option value="">— 選擇 —</option>
+                <option value="年斗">年斗</option>
+                <option value="季斗">季斗</option>
+                <option value="奇門年斗">奇門年斗</option>
+                <option value="奇門季斗">奇門季斗</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">架位編號</label>
+              <input type="text" id="dd-position" class="form-input" placeholder="如 A-001">
+            </div>
+            <div class="form-group">
+              <label class="form-label">安斗月份 *</label>
+              <input type="month" id="dd-start" class="form-input">
+            </div>
+            <div class="form-group form-grid-full" id="lingpai-group">
+              <label class="form-label">奇門令牌（選填，所有斗皆可加購）</label>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <select id="dd-tiangan" class="form-select">
+                  <option value="">— 天干 —</option>
+                  <option value="甲">甲</option><option value="乙">乙</option><option value="丙">丙</option>
+                  <option value="丁">丁</option><option value="戊">戊</option><option value="己">己</option>
+                  <option value="庚">庚</option><option value="辛">辛</option><option value="壬">壬</option>
+                  <option value="癸">癸</option>
+                </select>
+                <select id="dd-dizhi" class="form-select">
+                  <option value="">— 地支 —</option>
+                  <option value="子">子</option><option value="丑">丑</option><option value="寅">寅</option>
+                  <option value="卯">卯</option><option value="辰">辰</option><option value="巳">巳</option>
+                  <option value="午">午</option><option value="未">未</option><option value="申">申</option>
+                  <option value="酉">酉</option><option value="戌">戌</option><option value="亥">亥</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group form-grid-full">
+              <label class="form-label">備註</label>
+              <textarea id="dd-note" class="form-input" rows="2" placeholder="可填特殊備註"></textarea>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-ghost" onclick="resetDoudengForm()">清空</button>
+            <button class="btn btn-crimson" id="submit-doudeng">新　增　斗　燈</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 本月燒化 -->
+      <div id="panel-burn" class="panel">
+        <h2 class="panel-title">本月包年應燒份數</h2>
+        <p class="panel-desc">本月所有生效包年合約的萬寶金/天赦金份數,按老師分組。點老師展開明細。</p>
+        <div class="filter-row">
+          <label>查詢月份</label>
+          <input type="month" id="burn-month">
+          <label style="margin-left:16px;">老師（選填）</label>
+          <select id="burn-teacher">
+            <option value="">— 全部 —</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="loadBurn()">查詢</button>
+        </div>
+        <div id="burn-stats" class="stats-row" style="display:none;"></div>
+        <div id="burn-content"></div>
+      </div>
+
+      <!-- 本月撤斗 -->
+      <div id="panel-retire" class="panel">
+        <h2 class="panel-title">本月撤斗</h2>
+        <p class="panel-desc">本月應該撤下的斗燈清單。</p>
+        <div class="filter-row">
+          <label>查詢月份</label>
+          <input type="month" id="retire-month">
+          <label style="margin-left:16px;">老師（選填）</label>
+          <select id="retire-teacher">
+            <option value="">— 全部 —</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="loadRetire()">查詢</button>
+        </div>
+        <div id="retire-content"></div>
+      </div>
+
+      <!-- 包年業績 -->
+      <div id="panel-trend" class="panel">
+        <h2 class="panel-title">包年業績走勢</h2>
+        <p class="panel-desc">查看單一老師的年度月份走勢。</p>
+        <div class="filter-row">
+          <label>老師</label>
+          <select id="trend-teacher">
+            <option value="">— 選擇 —</option>
+          </select>
+          <label style="margin-left:16px;">年份</label>
+          <input type="number" id="trend-year" min="2024" max="2030" style="width:90px;">
+          <button class="btn btn-ghost btn-sm" onclick="loadTrend()">查詢</button>
+        </div>
+        <div id="trend-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 編輯客戶 Modal -->
+  <div id="edit-modal" class="modal-bg">
+    <div class="modal">
+      <div class="modal-title">編輯客戶</div>
+      <div class="form-grid">
+        <div class="form-group form-grid-full">
+          <label class="form-label">客戶 ID</label>
+          <input type="text" id="edit-cid" class="form-input" readonly style="background:#eee;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">客戶姓名</label>
+          <input type="text" id="edit-name" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">月費</label>
+          <select id="edit-fee" class="form-select">
+            <option value="2100">2,100</option>
+            <option value="3000">3,000</option>
+            <option value="4200">4,200</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">起始月份</label>
+          <input type="month" id="edit-start" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">首付日期</label>
+          <input type="date" id="edit-pay" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">是否生效</label>
+          <select id="edit-active" class="form-select">
+            <option value="是">是</option>
+            <option value="否">否</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">贈送年斗</label>
+          <select id="edit-gift" class="form-select">
+            <option value="">無</option>
+            <option value="財神斗">財神斗</option>
+            <option value="化煞斗">化煞斗</option>
+            <option value="貴人斗">貴人斗</option>
+            <option value="開運斗">開運斗</option>
+            <option value="姻緣斗">姻緣斗</option>
+          </select>
+        </div>
+        <div class="form-group form-grid-full">
+          <label class="form-label">備註</label>
+          <textarea id="edit-note" class="form-input" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="closeEditModal()">取消</button>
+        <button class="btn btn-crimson" onclick="saveEdit()">儲　存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增老師 Modal -->
+  <div id="add-teacher-modal" class="modal-bg">
+    <div class="modal">
+      <div class="modal-title">新增老師</div>
+      <p class="panel-desc">編號將自動指派為下一個序號，密碼為 123 + 編號。</p>
+      <div class="form-grid">
+        <div class="form-group form-grid-full">
+          <label class="form-label">老師姓名 *</label>
+          <input type="text" id="new-teacher-name" class="form-input" placeholder="王大明">
+        </div>
+        <div class="form-group form-grid-full">
+          <label class="form-label">縮寫（用於客戶 ID）*</label>
+          <input type="text" id="new-teacher-abbr" class="form-input" placeholder="如 WDM" style="text-transform:uppercase; font-family:'Courier New',monospace;">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="closeAddTeacherModal()">取消</button>
+        <button class="btn btn-crimson" onclick="submitAddTeacher()">確　認　新　增</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 客戶詳情 Modal -->
+  <div id="detail-modal" class="modal-bg">
+    <div class="modal">
+      <div class="modal-title" id="detail-title">客戶詳情</div>
+      <div id="detail-body"></div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="closeDetailModal()">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 加購令牌 modal -->
+  <div id="admin-lp-modal" class="modal-bg">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-title">加購奇門令牌</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">天干 *</label>
+          <select id="admin-lp-tg" class="form-select">
+            <option value="">— 選擇 —</option>
+            <option value="甲">甲</option><option value="乙">乙</option>
+            <option value="丙">丙</option><option value="丁">丁</option>
+            <option value="戊">戊</option><option value="己">己</option>
+            <option value="庚">庚</option><option value="辛">辛</option>
+            <option value="壬">壬</option><option value="癸">癸</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">地支 *</label>
+          <select id="admin-lp-dz" class="form-select">
+            <option value="">— 選擇 —</option>
+            <option value="子">子</option><option value="丑">丑</option>
+            <option value="寅">寅</option><option value="卯">卯</option>
+            <option value="辰">辰</option><option value="巳">巳</option>
+            <option value="午">午</option><option value="未">未</option>
+            <option value="申">申</option><option value="酉">酉</option>
+            <option value="戌">戌</option><option value="亥">亥</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="closeAdminLingpaiModal()">取消</button>
+        <button class="btn btn-primary" onclick="submitAdminLingpai()">確認加購</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 編輯斗燈 modal -->
+  <div id="edit-lamp-modal" class="modal-bg">
+    <div class="modal" style="max-width:520px;">
+      <div class="modal-title">編輯斗燈</div>
+      <input type="hidden" id="edit-lamp-no">
+      <input type="hidden" id="edit-lamp-row">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">編號(不可改)</label>
+          <input id="edit-lamp-no-display" class="form-input" disabled>
+        </div>
+        <div class="form-group">
+          <label class="form-label">所屬老師</label>
+          <select id="edit-lamp-teacher" class="form-select">
+            <option value="">— 選擇 —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">客戶姓名</label>
+          <input id="edit-lamp-name" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">斗種</label>
+          <select id="edit-lamp-doutype" class="form-select">
+            <option value="財神斗">財神斗</option>
+            <option value="化煞斗">化煞斗</option>
+            <option value="月老斗">月老斗</option>
+            <option value="開運斗">開運斗</option>
+            <option value="貴人斗">貴人斗</option>
+            <option value="姻緣斗">姻緣斗</option>
+            <option value="文昌斗">文昌斗</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">類型</label>
+          <select id="edit-lamp-type" class="form-select">
+            <option value="包年贈送">包年贈送</option>
+            <option value="單筆加購">單筆加購</option>
+            <option value="單購">單購</option>
+            <option value="季斗">季斗</option>
+            <option value="奇門年斗">奇門年斗</option>
+            <option value="奇門季斗">奇門季斗</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">架位編號</label>
+          <input id="edit-lamp-position" class="form-input" placeholder="例:A-12">
+        </div>
+        <div class="form-group">
+          <label class="form-label">安斗月份</label>
+          <input id="edit-lamp-start" type="month" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">應撤月份(自動算)</label>
+          <input id="edit-lamp-end" type="month" class="form-input" disabled>
+        </div>
+        <div class="form-group form-grid-full">
+          <label class="form-label">備註</label>
+          <input id="edit-lamp-note" class="form-input">
+        </div>
+        <div class="form-group form-grid-full">
+          <label class="form-label">令牌(選填)</label>
+          <input id="edit-lamp-lingpai" class="form-input" placeholder="例:辛未">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="closeEditLampModal()">取消</button>
+        <button class="btn btn-primary" onclick="submitEditLamp()">儲存</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzz9zWTST80TjzeYfc7S_8FbXAGjYbUu8QtJgu9Mf3WclA32pgF_WNHDyr9fXujKbov/exec';
+  
+  let currentPassword = '';
+  let editingRow = null;
+  let activeTeacher = null;
+  let teachersList = [];  // 從後端載入的完整老師清單（含縮寫）
+  
+  async function api(params) {
+    const url = API_URL + '?' + new URLSearchParams(params).toString();
+    const res = await fetch(url, { method: 'GET', redirect: 'follow' });
+    return await res.json();
+  }
+  
+  function authedApi(params) {
+    return api(Object.assign({ role: 'admin', password: currentPassword }, params));
+  }
+  
+  function esc(s) {
+    if (s === undefined || s === null) return '';
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[c]);
+  }
+  function num(n) { if (!n) return '0'; return Number(n).toLocaleString(); }
+  
+  function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + (type || '');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+  
+  function todayMonth() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  }
+  function todayDate() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  
+  document.getElementById('login-btn').addEventListener('click', doLogin);
+  document.getElementById('password-input').addEventListener('keypress', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+  
+  async function doLogin() {
+    const pw = document.getElementById('password-input').value;
+    const errEl = document.getElementById('login-error');
+    errEl.textContent = '';
+    if (!pw) { errEl.textContent = '請輸入密碼'; return; }
+    
+    try {
+      const res = await api({ action: 'login', role: 'admin', password: pw });
+      if (!res.ok) { errEl.textContent = res.error || '登入失敗'; return; }
+      currentPassword = pw;
+      enterMain();
+    } catch (e) {
+      errEl.textContent = '連線失敗：' + e.message;
+    }
+  }
+  
+  async function enterMain() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-screen').style.display = 'block';
+    
+    // 取老師清單
+    const res = await authedApi({ action: 'getTeacherListWithIndex' });
+    if (res.ok) teachersList = res.data || [];
+    
+    // 填老師選單
+    refillTeacherSelects();
+    
+    document.getElementById('bn-start').value = todayMonth();
+    document.getElementById('bn-pay').value = todayDate();
+    document.getElementById('dd-start').value = todayMonth();
+    document.getElementById('burn-month').value = todayMonth();
+    document.getElementById('retire-month').value = todayMonth();
+    document.getElementById('trend-year').value = new Date().getFullYear();
+    
+    document.getElementById('bn-fee').addEventListener('change', e => {
+      document.getElementById('gift-group').style.display = (e.target.value === '4200') ? 'block' : 'none';
+      if (e.target.value !== '4200') document.getElementById('bn-gift').value = '';
+    });
+    
+    // 令牌欄一律顯示, 不再區分斗種
+    
+    document.getElementById('bn-teacher').addEventListener('change', e => loadNextId('baonian', e.target.value));
+    document.getElementById('dd-teacher').addEventListener('change', e => loadNextId('doudeng', e.target.value));
+    
+    document.querySelectorAll('.tab').forEach(t => {
+      t.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        document.getElementById(t.dataset.panel).classList.add('active');
+        if (t.dataset.panel === 'panel-customers') loadCustomers();
+        if (t.dataset.panel === 'panel-active') loadActiveLamps();
+        if (t.dataset.panel === 'panel-burn') loadBurn();
+        if (t.dataset.panel === 'panel-retire') loadRetire();
+        if (t.dataset.panel === 'panel-trend') loadTrend();
+      });
+    });
+    
+    document.getElementById('submit-baonian').addEventListener('click', submitBaonian);
+    document.getElementById('submit-doudeng').addEventListener('click', submitDoudeng);
+    document.getElementById('logout-btn').addEventListener('click', () => location.reload());
+    
+    // 全域搜尋按 Enter
+    document.getElementById('global-search').addEventListener('keypress', e => {
+      if (e.key === 'Enter') doGlobalSearch();
+    });
+    
+    loadCustomers();
+  }
+  
+  function refillTeacherSelects() {
+    ['bn-teacher','dd-teacher','burn-teacher','retire-teacher','trend-teacher'].forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      // 保留第一項（— 選擇 — 或 — 全部 —），清掉其他
+      const first = sel.options[0];
+      sel.innerHTML = '';
+      sel.appendChild(first);
+      teachersList.forEach((t, i) => {
+        const opt = document.createElement('option');
+        opt.value = t.name;
+        opt.textContent = (i + 1) + '. ' + t.name;
+        sel.appendChild(opt);
+      });
+    });
+  }
+  
+  // ========== 客戶資料卡片 ==========
+  let cachedGrouped = {};
+  
+  async function loadCustomers() {
+    const grid = document.getElementById('teacher-grid');
+    grid.innerHTML = '<div class="empty-hint" style="grid-column:1/-1;">載入中...</div>';
+    document.getElementById('teacher-detail').classList.remove('show');
+    document.getElementById('search-results').style.display = 'none';
+    
+    try {
+      const res = await authedApi({ action: 'getAllCustomersByTeacher' });
+      if (!res.ok) { grid.innerHTML = '<div class="empty-hint" style="grid-column:1/-1;">查詢失敗</div>'; return; }
+      cachedGrouped = res.data || {};
+      updateCustomersSummary();
+      renderTeacherGrid(teachersList);
+    } catch (e) {
+      grid.innerHTML = '<div class="empty-hint" style="grid-column:1/-1;">連線失敗：' + esc(e.message) + '</div>';
+    }
+  }
+  
+  function updateCustomersSummary() {
+    let totalCustomers = 0;
+    let totalLamps = 0;
+    let totalBaonian = 0;
+    let totalMonthly = 0;
+    let totalLingpai = 0;
+    Object.values(cachedGrouped).forEach(list => {
+      list.forEach(c => {
+        // 過濾死客戶
+        if (c.activeLamps === 0 && !c.hasBaonian) return;
+        totalCustomers++;
+        totalLamps += c.totalLamps || 0;
+        if (c.hasBaonian) {
+          totalBaonian += c.baonianCount || 1;
+          totalMonthly += c.baonianFee || 0;
+        }
+        if (c.hasLingpai) totalLingpai++;
+      });
+    });
+    const fmt = n => 'NT$ ' + Number(n).toLocaleString();
+    document.getElementById('sum-customers').textContent = totalCustomers;
+    document.getElementById('sum-contracts').textContent = totalBaonian;
+    document.getElementById('sum-monthly').textContent = fmt(totalMonthly);
+    document.getElementById('sum-yearly').textContent = fmt(totalMonthly * 12);
+  }
+  
+  // ========== 目前點燈中 ==========
+  let activeLampsCache = [];
+  async function loadActiveLamps() {
+    const list = document.getElementById('active-list');
+    list.innerHTML = '<div class="empty-hint">載入中...</div>';
+    try {
+      const res = await authedApi({ action: 'getActiveLamps' });
+      if (!res.ok) { list.innerHTML = '<div class="empty-hint">載入失敗</div>'; return; }
+      activeLampsCache = res.data || [];
+      
+      const teacherSel = document.getElementById('active-filter-teacher');
+      const teachersInData = [...new Set(activeLampsCache.map(x => x.teacher))].sort();
+      teacherSel.innerHTML = '<option value="">全部 ('+activeLampsCache.length+')</option>' + 
+        teachersInData.map(t => {
+          const n = activeLampsCache.filter(x => x.teacher === t).length;
+          return `<option value="${t}">${t} (${n})</option>`;
+        }).join('');
+      
+      // 統計
+      const today = new Date();
+      const thisMonth = today.toISOString().slice(0,7);
+      let yearN = 0, seasonN = 0, expiring = 0, overdue = 0, lingpaiN = 0;
+      activeLampsCache.forEach(l => {
+        const t = (l.type||'');
+        if (t.indexOf('季斗') >= 0) seasonN++;
+        else yearN++;  // 年斗類:包年贈送、單筆加購、單購、奇門年斗
+        if (l.lingpai) lingpaiN++;
+        if (l.endMonth === thisMonth) expiring++;
+        else if (l.endMonth && l.endMonth < thisMonth) overdue++;
+      });
+      document.getElementById('ac-total').textContent = activeLampsCache.length;
+      document.getElementById('ac-year').textContent = yearN;
+      document.getElementById('ac-season').textContent = seasonN;
+      document.getElementById('ac-expiring').textContent = expiring;
+      document.getElementById('ac-overdue').textContent = overdue;
+      document.getElementById('ac-lingpai').textContent = lingpaiN;
+      
+      renderActiveLamps();
+    } catch (e) {
+      list.innerHTML = '<div class="empty-hint">連線失敗:' + esc(e.message) + '</div>';
+    }
+  }
+  
+  function renderActiveLamps() {
+    const tFilter = document.getElementById('active-filter-teacher').value;
+    const typeFilter = document.getElementById('active-filter-type').value;
+    const kw = document.getElementById('active-filter-search').value.trim().toLowerCase();
+    
+    let lamps = activeLampsCache;
+    if (tFilter) lamps = lamps.filter(l => l.teacher === tFilter);
+    if (typeFilter) lamps = lamps.filter(l => (l.type||'').indexOf(typeFilter) >= 0);
+    if (kw) lamps = lamps.filter(l => 
+      (l.name||'').toLowerCase().includes(kw) ||
+      (l.no||'').toLowerCase().includes(kw) ||
+      (l.customerId||'').toLowerCase().includes(kw)
+    );
+    
+    const list = document.getElementById('active-list');
+    if (lamps.length === 0) {
+      list.innerHTML = '<div class="empty-hint">沒有符合條件的斗燈</div>';
+      return;
+    }
+    
+    // 按老師收合(類似 04 表的處理)
+    const byTeacher = {};
+    lamps.forEach(l => {
+      const t = l.teacher || '未知';
+      if (!byTeacher[t]) byTeacher[t] = { lamps: [], year: 0, season: 0 };
+      byTeacher[t].lamps.push(l);
+      if ((l.type||'').indexOf('季斗') >= 0) byTeacher[t].season++;
+      else byTeacher[t].year++;
+    });
+    
+    const today = new Date().toISOString().slice(0,7);
+    const teachersSorted = Object.keys(byTeacher).sort((a,b) => byTeacher[b].lamps.length - byTeacher[a].lamps.length);
+    
+    let html = '<div style="margin-bottom:8px; color:var(--ink-light); font-size:13px;">共 ' + lamps.length + ' 盞 ・ ' + teachersSorted.length + ' 位老師(點老師展開明細)</div>';
+    
+    teachersSorted.forEach((t, idx) => {
+      const g = byTeacher[t];
+      const groupId = 'active-grp-' + idx;
+      html += `<div style="border:1px solid var(--border); border-radius:8px; margin-bottom:10px; overflow:hidden;">
+        <div onclick="document.getElementById('${groupId}').classList.toggle('show'); this.querySelector('.arr').textContent = document.getElementById('${groupId}').classList.contains('show') ? '▼' : '▶';"
+             style="padding:14px 16px; background:var(--bg-input); cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <span class="arr" style="display:inline-block; width:16px;">▶</span>
+            <strong style="font-size:15px;">${esc(t)}</strong>
+            <span style="color:var(--ink-light); font-size:13px; margin-left:8px;">${g.lamps.length} 盞</span>
+          </div>
+          <div style="font-size:14px;">
+            年斗 <strong style="color:var(--gold-deep); font-size:18px;">${g.year}</strong>
+            <span style="color:var(--ink-faint);"> ・ </span>
+            季斗 <strong style="color:var(--gold-deep); font-size:18px;">${g.season}</strong>
+          </div>
+        </div>
+        <div id="${groupId}" class="active-group-body" style="display:none; padding:0;">
+          <table class="data-table" style="margin:0;">
+            <thead><tr><th>編號</th><th>客戶</th><th>斗種</th><th>類型</th><th>架位</th><th>開始</th><th>應撤</th><th>令牌</th><th>動作</th></tr></thead>
+            <tbody>`;
+      g.lamps.forEach(l => {
+        let dateBadge = '';
+        let rowStyle = '';
+        if (l.endMonth === today) {
+          rowStyle = 'style="background:#fff3cd;"';
+          dateBadge = ' <span class="badge badge-warn">本月到期</span>';
+        } else if (l.endMonth && l.endMonth < today) {
+          rowStyle = 'style="background:#f8d7da;"';
+          dateBadge = ' <span class="badge badge-warn">已過期</span>';
+        }
+        const lpDisplay = l.lingpai 
+          ? '<span style="color:var(--gold-deep);">🪙 '+esc(l.lingpai)+'</span>' 
+          : '<span style="color:var(--ink-faint);">—</span>';
+        html += `<tr ${rowStyle} class="clickable" onclick="openCustomerDetail('${esc(l.customerId)}')">
+          <td><strong>${esc(l.no)}</strong></td>
+          <td>${esc(l.name)} <span style="color:var(--ink-faint); font-size:11px;">${esc(l.customerId)}</span></td>
+          <td>${esc(l.douType)}</td>
+          <td style="font-size:12px;">${esc(l.type)}</td>
+          <td>${esc(l.position||'-')}</td>
+          <td style="font-size:12px;">${esc(l.startMonth)}</td>
+          <td style="font-size:12px;">${esc(l.endMonth)}${dateBadge}</td>
+          <td>${lpDisplay}</td>
+          <td class="actions" onclick="event.stopPropagation()">
+            <button onclick='openEditLampModal(${JSON.stringify(l).replace(/'/g, "&#39;")})' style="font-size:11px;">✎編輯</button>
+            <button onclick="openAdminLingpaiModal('${esc(l.no)}', '${esc(l.customerId)}')" style="font-size:11px;">+令牌</button>
+            <button class="delete" onclick="confirmRetireLamp('${esc(l.no)}', ${l.rowIdx}, '${esc(l.douType)}', '${esc(l.customerId)}')" style="font-size:11px;">撤斗</button>
+          </td>
+        </tr>`;
+      });
+      html += `</tbody></table></div></div>`;
+    });
+    html += '<style>.active-group-body.show{display:block!important;}</style>';
+    list.innerHTML = html;
+  }
+  
+  function renderTeacherGrid(list) {
+    const grid = document.getElementById('teacher-grid');
+    let html = '';
+    list.forEach((t, i) => {
+      // 過濾掉「全撤 + 無包年」的死客戶
+      const customers = (cachedGrouped[t.name] || []).filter(c => 
+        c.activeLamps > 0 || c.hasBaonian
+      );
+      const indexNum = teachersList.findIndex(x => x.name === t.name) + 1;
+      const totalLamps = customers.reduce((s,c) => s + (c.totalLamps||0), 0);
+      const baonianN = customers.filter(c => c.hasBaonian).length;
+      const lingpaiN = customers.filter(c => c.hasLingpai).length;
+      html += `<div class="teacher-card" data-name="${esc(t.name)}" onclick="showTeacherDetail('${esc(t.name)}')">
+        <div class="teacher-card-num">#${indexNum}</div>
+        <div class="teacher-card-delete" onclick="event.stopPropagation(); confirmDeleteTeacher('${esc(t.name)}')" title="刪除老師">×</div>
+        <div class="teacher-card-name">${esc(t.name)}</div>
+        <div class="teacher-card-stat">
+          <span>客戶</span>
+          <span class="num">${customers.length}</span>
+        </div>
+        <div style="font-size:12px; color:var(--ink-light); margin-top:4px;">
+          斗燈 ${totalLamps} ・ 包年 ${baonianN}${lingpaiN ? ' ・ 🪙 '+lingpaiN : ''}
+        </div>
+        <div class="teacher-card-abbr">${esc(t.abbr)}</div>
+      </div>`;
+    });
+    html += `<div class="teacher-card-add" onclick="openAddTeacherModal()">＋ 新增老師</div>`;
+    grid.innerHTML = html;
+  }
+  
+  function showTeacherDetail(teacher) {
+    activeTeacher = teacher;
+    
+    document.querySelectorAll('.teacher-card').forEach(c => c.classList.remove('active'));
+    const card = document.querySelector(`.teacher-card[data-name="${teacher}"]`);
+    if (card) card.classList.add('active');
+    
+    // 過濾「全撤 + 無包年」
+    const customers = (cachedGrouped[teacher] || []).filter(c => 
+      c.activeLamps > 0 || c.hasBaonian
+    );
+    const tInfo = teachersList.find(t => t.name === teacher);
+    const indexNum = teachersList.findIndex(t => t.name === teacher) + 1;
+    const detail = document.getElementById('teacher-detail');
+    
+    let html = `<div class="teacher-detail-header">
+      <div>
+        <div class="teacher-detail-name">${esc(teacher)} 
+          <span style="color:var(--gold-deep);font-family:'Courier New',monospace;font-size:13px;margin-left:8px;">#${indexNum} ・ ${esc(tInfo ? tInfo.abbr : '')}</span>
+        </div>
+        <div style="color:var(--ink-light);font-size:13px;">共 ${customers.length} 位客戶 ・ 密碼 123${indexNum}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="closeTeacherDetail()">關閉</button>
+    </div>`;
+    
+    if (customers.length === 0) {
+      html += '<div class="empty-hint">該老師目前沒有客戶</div>';
+    } else {
+      html += '<table class="data-table"><thead><tr><th>客戶 ID</th><th>姓名</th><th>斗燈</th><th>包年</th><th>令牌</th><th>類型分布</th></tr></thead><tbody>';
+      customers.forEach(c => {
+        const lpBadge = c.hasLingpai 
+          ? `<span style="color:var(--gold-deep);">🪙 ${c.lingpaiCount||1}</span>` 
+          : '<span style="color:var(--ink-faint);">—</span>';
+        const bnBadge = c.hasBaonian 
+          ? `<span class="badge badge-active">${c.baonianCount}份</span>` 
+          : '<span style="color:var(--ink-faint);">—</span>';
+        const lampInfo = `${c.totalLamps}<span style="color:var(--ink-faint);font-size:11px;"> (${c.activeLamps}在/${c.retiredLamps}撤)</span>`;
+        const types = [];
+        if (c.dou_baonian) types.push(`包${c.dou_baonian}`);
+        if (c.dou_year) types.push(`年${c.dou_year}`);
+        if (c.dou_season) types.push(`季${c.dou_season}`);
+        if (c.dou_qimen) types.push(`奇${c.dou_qimen}`);
+        if (c.dou_single) types.push(`單${c.dou_single}`);
+        html += `<tr class="clickable" onclick="openCustomerDetail('${esc(c.customerId)}')">
+          <td><strong>${esc(c.customerId)}</strong></td>
+          <td>${esc(c.name)}</td>
+          <td>${lampInfo}</td>
+          <td>${bnBadge}</td>
+          <td>${lpBadge}</td>
+          <td style="font-size:12px; color:var(--ink-light);">${types.join(' ・ ')}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+    }
+    
+    detail.innerHTML = html;
+    detail.classList.add('show');
+    detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  
+  function closeTeacherDetail() {
+    document.getElementById('teacher-detail').classList.remove('show');
+    document.querySelectorAll('.teacher-card').forEach(c => c.classList.remove('active'));
+  }
+  
+  // ========== 全域搜尋 ==========
+  function doGlobalSearch() {
+    const kw = document.getElementById('global-search').value.trim().toLowerCase();
+    if (!kw) { clearGlobalSearch(); return; }
+    
+    // 1. 先找老師（縮寫或姓名）
+    const teacherMatches = teachersList.filter(t => 
+      t.name.toLowerCase().indexOf(kw) >= 0 || 
+      t.abbr.toLowerCase().indexOf(kw) >= 0
+    );
+    
+    // 2. 找客戶（姓名或 ID）
+    const customerMatches = [];
+    Object.keys(cachedGrouped).forEach(teacher => {
+      (cachedGrouped[teacher] || []).forEach(c => {
+        if (
+          String(c.customerId).toLowerCase().indexOf(kw) >= 0 ||
+          String(c.name).toLowerCase().indexOf(kw) >= 0
+        ) {
+          customerMatches.push(c);
+        }
+      });
+    });
+    
+    document.getElementById('teacher-detail').classList.remove('show');
+    
+    // 如果有老師匹配，只顯示這幾張卡片
+    if (teacherMatches.length > 0) {
+      renderTeacherGrid(teacherMatches);
+    } else {
+      // 沒有老師匹配但有客戶 → 不顯示卡片
+      document.getElementById('teacher-grid').innerHTML = '';
+    }
+    
+    // 顯示客戶搜尋結果
+    const sr = document.getElementById('search-results');
+    if (customerMatches.length > 0) {
+      let html = `<div class="search-results">
+        <div class="search-results-title">🔍 找到 ${customerMatches.length} 位客戶（關鍵字「${esc(kw)}」）</div>
+        <table class="data-table"><thead><tr><th>客戶 ID</th><th>姓名</th><th>所屬老師</th><th>月費</th><th>起始</th><th>到期</th><th>狀態</th></tr></thead><tbody>`;
+      customerMatches.forEach(c => {
+        const status = c.active === '是' 
+          ? '<span class="badge badge-active">生效</span>' 
+          : '<span class="badge badge-warn">未生效</span>';
+        html += `<tr class="clickable" onclick="openCustomerDetail('${esc(c.customerId)}')">
+          <td><strong>${esc(c.customerId)}</strong></td>
+          <td>${esc(c.name)}</td>
+          <td>${esc(c.teacher)}</td>
+          <td>${num(c.fee)}</td>
+          <td>${esc(c.startMonth)}</td>
+          <td>${esc(c.endMonth)}</td>
+          <td>${status}</td>
+        </tr>`;
+      });
+      html += '</tbody></table></div>';
+      sr.innerHTML = html;
+      sr.style.display = 'block';
+    } else {
+      sr.style.display = 'none';
+    }
+  }
+  
+  function clearGlobalSearch() {
+    document.getElementById('global-search').value = '';
+    document.getElementById('search-results').style.display = 'none';
+    renderTeacherGrid(teachersList);
+  }
+  
+  // ========== 新增老師 ==========
+  function openAddTeacherModal() {
+    document.getElementById('new-teacher-name').value = '';
+    document.getElementById('new-teacher-abbr').value = '';
+    document.getElementById('add-teacher-modal').classList.add('show');
+  }
+  function closeAddTeacherModal() {
+    document.getElementById('add-teacher-modal').classList.remove('show');
+  }
+  async function submitAddTeacher() {
+    const name = document.getElementById('new-teacher-name').value.trim();
+    const abbr = document.getElementById('new-teacher-abbr').value.trim().toUpperCase();
+    if (!name || !abbr) { showToast('請填姓名與縮寫', 'error'); return; }
+    
+    try {
+      const res = await authedApi({ action: 'addTeacher', name: name, abbr: abbr });
+      if (res.ok) {
+        showToast('已新增老師：' + name + '（密碼 123' + (res.data.index) + '）', 'success');
+        closeAddTeacherModal();
+        // 重載老師清單
+        const r2 = await authedApi({ action: 'getTeacherListWithIndex' });
+        if (r2.ok) teachersList = r2.data || [];
+        refillTeacherSelects();
+        loadCustomers();
+      } else {
+        showToast('失敗：' + (res.error || ''), 'error');
+      }
+    } catch (e) {
+      showToast('連線失敗：' + e.message, 'error');
+    }
+  }
+  
+  async function confirmDeleteTeacher(name) {
+    if (!confirm(`確定要刪除老師「${name}」？\n（如果該老師還有客戶會被阻止）`)) return;
+    try {
+      const res = await authedApi({ action: 'deleteTeacher', name: name });
+      if (res.ok) {
+        showToast('已刪除老師：' + name, 'success');
+        const r2 = await authedApi({ action: 'getTeacherListWithIndex' });
+        if (r2.ok) teachersList = r2.data || [];
+        refillTeacherSelects();
+        loadCustomers();
+      } else {
+        showToast(res.error || '刪除失敗', 'error');
+      }
+    } catch (e) {
+      showToast('連線失敗：' + e.message, 'error');
+    }
+  }
+  
+  // ========== 編輯客戶 ==========
+  function openEditModal(rowIdx, c) {
+    editingRow = rowIdx;
+    document.getElementById('edit-cid').value = c.customerId || '';
+    document.getElementById('edit-name').value = c.name || '';
+    document.getElementById('edit-fee').value = c.fee || '';
+    document.getElementById('edit-start').value = c.startMonth || '';
+    document.getElementById('edit-pay').value = c.payDate || '';
+    document.getElementById('edit-active').value = c.active || '是';
+    document.getElementById('edit-gift').value = c.giftDouType || '';
+    document.getElementById('edit-note').value = c.note || '';
+    document.getElementById('edit-modal').classList.add('show');
+  }
+  
+  function closeEditModal() {
+    document.getElementById('edit-modal').classList.remove('show');
+    editingRow = null;
+  }
+  
+  async function saveEdit() {
+    if (!editingRow) return;
+    const payload = {
+      2: document.getElementById('edit-name').value.trim(),
+      4: parseInt(document.getElementById('edit-fee').value),
+      6: document.getElementById('edit-start').value,
+      8: document.getElementById('edit-pay').value,
+      12: document.getElementById('edit-active').value,
+      13: document.getElementById('edit-gift').value,
+      14: document.getElementById('edit-note').value.trim()
+    };
+    
+    try {
+      const res = await authedApi({
+        action: 'updateRow',
+        sheetName: '02_包年合約台帳',
+        row: editingRow,
+        payload: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        showToast('已更新', 'success');
+        closeEditModal();
+        await loadCustomers();
+        if (activeTeacher) showTeacherDetail(activeTeacher);
+      } else {
+        showToast('更新失敗', 'error');
+      }
+    } catch (e) {
+      showToast('連線失敗：' + e.message, 'error');
+    }
+  }
+  
+  async function confirmDeleteCustomer(rowIdx, name) {
+    if (!confirm(`確定要刪除客戶「${name}」？此動作無法還原。`)) return;
+    try {
+      const res = await authedApi({ action: 'deleteRow', sheetName: '02_包年合約台帳', row: rowIdx });
+      if (res.ok) {
+        showToast('已刪除', 'success');
+        await loadCustomers();
+        if (activeTeacher) showTeacherDetail(activeTeacher);
+      } else {
+        showToast('刪除失敗', 'error');
+      }
+    } catch (e) {
+      showToast('連線失敗：' + e.message, 'error');
+    }
+  }
+  
+  // ========== 客戶詳情（含斗燈+令牌） ==========
+  async function openCustomerDetail(customerId) {
+    document.getElementById('detail-modal').classList.add('show');
+    document.getElementById('detail-title').textContent = '客戶詳情：' + customerId;
+    document.getElementById('detail-body').innerHTML = '<div class="empty-hint">載入中...</div>';
+    
+    try {
+      const res = await authedApi({ action: 'getCustomerDetail', customerId: customerId });
+      if (!res.ok) {
+        document.getElementById('detail-body').innerHTML = '<div class="empty-hint">查詢失敗</div>';
+        return;
+      }
+      const data = res.data || {};
+      const bn = data.baonian;
+      const lamps = data.lamps || [];
+      
+      let html = '';
+      if (bn) {
+        const status = bn.active === '是' 
+          ? '<span class="badge badge-active">生效</span>' 
+          : '<span class="badge badge-warn">未生效</span>';
+        html += `<div style="padding:12px 16px; background:var(--bg-input); margin-bottom:16px;">
+          <div style="font-weight:600; font-size:16px; margin-bottom:6px;">${esc(bn.name)} <span style="color:var(--gold-deep); font-family:'Courier New',monospace; font-size:13px;">${esc(bn.customerId)}</span></div>
+          <div style="font-size:13px; color:var(--ink-light);">老師 ${esc(bn.teacher)} ・ 月費 ${num(bn.fee)} ・ ${esc(bn.startMonth)} ~ ${esc(bn.endMonth)} ${status}</div>
+          <div style="font-size:13px; color:var(--ink-light); margin-top:4px;">萬寶 ${num(bn.wbj)} / 天赦 ${num(bn.tsj)} ${bn.giftDouType ? '・贈 '+esc(bn.giftDouType) : ''}</div>
+        </div>`;
+      }
+      
+      html += `<div style="font-size:14px; color:var(--ink-light); letter-spacing:1px; margin-bottom:8px;">斗燈紀錄（${lamps.length} 盞）</div>`;
+      if (lamps.length === 0) {
+        html += '<p style="color:var(--ink-faint);">該客戶尚無斗燈紀錄</p>';
+      } else {
+        lamps.forEach(l => {
+          const retiredBadge = l.retired === '是' 
+            ? '<span class="badge badge-warn">已撤</span>' 
+            : '<span class="badge badge-active">在斗</span>';
+          const actions = (l.retired !== '是') 
+            ? `<div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+                 <button class="btn btn-ghost btn-sm" onclick='openEditLampModal(${JSON.stringify(l).replace(/'/g, "&#39;")})'>✎ 編輯</button>
+                 <button class="btn btn-ghost btn-sm" onclick="openAdminLingpaiModal('${esc(l.no)}', '${esc(customerId)}')">+ 加購令牌</button>
+                 <button class="btn btn-ghost btn-sm" style="border-color:#c0392b; color:#c0392b;" onclick="confirmRetireLamp('${esc(l.no)}', ${l.rowIdx}, '${esc(l.douType)}', '${esc(customerId)}')">撤斗</button>
+               </div>` 
+            : '';
+          html += `<div class="lamp-card" style="padding:12px; border:1px solid var(--border); margin-bottom:8px; border-radius:6px;">
+            <strong>${esc(l.no)}</strong> ・ ${esc(l.douType)} ${esc(l.type)} 
+            ${l.position ? '・架位 '+esc(l.position) : ''} 
+            ・${esc(l.startMonth)}~${esc(l.endMonth)} ${retiredBadge}
+            ${l.lingpai ? '<div style="margin-top:4px; color:var(--gold-deep);">🪙 令牌：'+esc(l.lingpai)+'</div>' : ''}
+            ${l.retireDate ? '<div style="margin-top:4px; color:var(--ink-faint); font-size:12px;">撤斗日:'+esc(l.retireDate)+'</div>' : ''}
+            ${actions}
+          </div>`;
+        });
+      }
+      
+      document.getElementById('detail-body').innerHTML = html;
+    } catch (e) {
+      document.getElementById('detail-body').innerHTML = '<div class="empty-hint">連線失敗</div>';
+    }
+  }
+  function closeDetailModal() { document.getElementById('detail-modal').classList.remove('show'); }
+  
+  // ========== 編輯斗燈 ==========
+  function openEditLampModal(lamp) {
+    // 填入老師清單
+    const teacherSel = document.getElementById('edit-lamp-teacher');
+    teacherSel.innerHTML = '<option value="">— 選擇 —</option>' + 
+      teachersList.map(t => `<option value="${esc(t.name)}">${esc(t.name)}</option>`).join('');
+    
+    document.getElementById('edit-lamp-no').value = lamp.no;
+    document.getElementById('edit-lamp-row').value = lamp.rowIdx;
+    document.getElementById('edit-lamp-no-display').value = lamp.no;
+    document.getElementById('edit-lamp-teacher').value = lamp.teacher || '';
+    document.getElementById('edit-lamp-name').value = lamp.name || '';
+    document.getElementById('edit-lamp-doutype').value = lamp.douType || '財神斗';
+    document.getElementById('edit-lamp-type').value = lamp.type || '單筆加購';
+    document.getElementById('edit-lamp-position').value = lamp.position === '-' ? '' : (lamp.position || '');
+    document.getElementById('edit-lamp-start').value = lamp.startMonth || '';
+    document.getElementById('edit-lamp-end').value = lamp.endMonth || '';
+    document.getElementById('edit-lamp-note').value = lamp.note || '';
+    document.getElementById('edit-lamp-lingpai').value = lamp.lingpai || '';
+    
+    document.getElementById('edit-lamp-modal').classList.add('show');
+  }
+  function closeEditLampModal() {
+    document.getElementById('edit-lamp-modal').classList.remove('show');
+  }
+  async function submitEditLamp() {
+    const no = document.getElementById('edit-lamp-no').value;
+    const rowIdx = document.getElementById('edit-lamp-row').value;
+    const teacher = document.getElementById('edit-lamp-teacher').value;
+    const name = document.getElementById('edit-lamp-name').value.trim();
+    const douType = document.getElementById('edit-lamp-doutype').value;
+    const type = document.getElementById('edit-lamp-type').value;
+    const position = document.getElementById('edit-lamp-position').value.trim() || '-';
+    const start = document.getElementById('edit-lamp-start').value;
+    const note = document.getElementById('edit-lamp-note').value.trim();
+    const lingpai = document.getElementById('edit-lamp-lingpai').value.trim();
+    
+    if (!teacher) { showToast('請選老師', 'error'); return; }
+    if (!name) { showToast('請填客戶姓名', 'error'); return; }
+    if (!start) { showToast('請選安斗月份', 'error'); return; }
+    
+    try {
+      const payload = { 
+        no, rowIdx: parseInt(rowIdx), teacher, name, douType, type, 
+        position, startMonth: start, note, lingpai 
+      };
+      const res = await authedApi({ action: 'editDoudeng', payload: JSON.stringify(payload) });
+      if (res.ok) {
+        showToast('編輯成功', 'success');
+        closeEditLampModal();
+        loadActiveLamps();
+        loadCustomers();
+      } else {
+        showToast('編輯失敗:' + (res.error || ''), 'error');
+      }
+    } catch (e) { showToast('連線失敗', 'error'); }
+  }
+  
+  // ========== 行政頁:加購令牌 ==========
+  let _curLampNo = null;
+  let _curCidForReload = null;
+  function openAdminLingpaiModal(lampNo, customerId) {
+    _curLampNo = lampNo;
+    _curCidForReload = customerId;
+    document.getElementById('admin-lp-tg').value = '';
+    document.getElementById('admin-lp-dz').value = '';
+    document.getElementById('admin-lp-modal').classList.add('show');
+  }
+  function closeAdminLingpaiModal() { document.getElementById('admin-lp-modal').classList.remove('show'); }
+  async function submitAdminLingpai() {
+    const tg = document.getElementById('admin-lp-tg').value;
+    const dz = document.getElementById('admin-lp-dz').value;
+    if (!tg || !dz) { showToast('請選天干與地支', 'error'); return; }
+    const lingpai = tg + dz;
+    try {
+      const res = await authedApi({ action: 'addLingpai', payload: JSON.stringify({ no: _curLampNo, lingpai }) });
+      if (res.ok) {
+        showToast('加購令牌成功:' + lingpai, 'success');
+        closeAdminLingpaiModal();
+        if (_curCidForReload) openCustomerDetail(_curCidForReload);
+      } else {
+        showToast('失敗:' + (res.error || ''), 'error');
+      }
+    } catch (e) { showToast('連線失敗', 'error'); }
+  }
+  
+  // ========== 行政頁:撤斗 ==========
+  function confirmRetireLamp(lampNo, rowIdx, douType, customerId) {
+    if (!confirm(`確定撤掉這顆斗嗎?\n\n編號:${lampNo}\n斗種:${douType}\n\n撤斗後該斗會標為「已撤」, 撤斗日填今天。\n保留歷史紀錄(不會真的刪除)。`)) return;
+    retireLamp(lampNo, rowIdx, customerId);
+  }
+  async function retireLamp(lampNo, rowIdx, customerId) {
+    try {
+      const today = new Date().toISOString().slice(0,10);
+      const res = await authedApi({ 
+        action: 'retireDoudeng', 
+        payload: JSON.stringify({ no: lampNo, retireDate: today }) 
+      });
+      if (res.ok) {
+        showToast('撤斗成功:' + lampNo, 'success');
+        if (customerId) openCustomerDetail(customerId);
+        loadCustomers();  // 刷新主清單
+      } else {
+        showToast('撤斗失敗:' + (res.error || ''), 'error');
+      }
+    } catch (e) { showToast('連線失敗', 'error'); }
+  }
+  
+  // ========== 客戶 ID 自動 ==========
+  async function loadNextId(kind, teacher) {
+    const el = document.getElementById('next-id-' + kind);
+    if (!teacher) {
+      el.className = 'id-display empty';
+      el.textContent = '請先選擇老師';
+      return;
+    }
+    el.className = 'id-display loading';
+    el.textContent = '系統產生中…';
+    try {
+      const res = await authedApi({ action: 'getNextCustomerId', teacher: teacher });
+      if (res.ok && res.data && res.data.nextId) {
+        el.className = 'id-display';
+        el.textContent = res.data.nextId;
+      } else {
+        el.textContent = '產生失敗';
+      }
+    } catch (e) {
+      el.textContent = '連線失敗';
+    }
+  }
+  
+  // ========== 新增包年/斗燈 ==========
+  function resetBaonianForm() {
+    document.getElementById('bn-teacher').value = '';
+    document.getElementById('bn-name').value = '';
+    document.getElementById('bn-fee').value = '';
+    document.getElementById('bn-start').value = todayMonth();
+    document.getElementById('bn-pay').value = todayDate();
+    document.getElementById('bn-gift').value = '';
+    document.getElementById('bn-note').value = '';
+    document.getElementById('gift-group').style.display = 'none';
+    document.getElementById('next-id-baonian').className = 'id-display empty';
+    document.getElementById('next-id-baonian').textContent = '請先選擇老師';
+  }
+  
+  async function submitBaonian() {
+    const teacher = document.getElementById('bn-teacher').value;
+    const name = document.getElementById('bn-name').value.trim();
+    const fee = document.getElementById('bn-fee').value;
+    const start = document.getElementById('bn-start').value;
+    const pay = document.getElementById('bn-pay').value;
+    const gift = document.getElementById('bn-gift').value;
+    const note = document.getElementById('bn-note').value.trim();
+    
+    if (!teacher) { showToast('請選老師', 'error'); return; }
+    if (!name) { showToast('請填客戶姓名', 'error'); return; }
+    if (!fee) { showToast('請選月費', 'error'); return; }
+    if (!start) { showToast('請選起始月份', 'error'); return; }
+    if (!pay) { showToast('請選首付日期', 'error'); return; }
+    if (fee === '4200' && !gift) { showToast('4,200 月費需選贈送年斗', 'error'); return; }
+    
+    const btn = document.getElementById('submit-baonian');
+    btn.disabled = true; btn.textContent = '處 理 中…';
+    try {
+      const payload = { teacher, name, fee, startMonth: start, payDate: pay, giftDouType: gift, note };
+      const res = await authedApi({ action: 'addBaonian', payload: JSON.stringify(payload) });
+      if (res.ok) {
+        showToast('新增成功！客戶 ID：' + (res.data && res.data.customerId || '-'), 'success');
+        resetBaonianForm();
+      } else {
+        showToast('新增失敗：' + (res.error || ''), 'error');
+      }
+    } catch (e) {
+      showToast('連線失敗：' + e.message, 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = '新　增　包　年';
+    }
+  }
+  
+  function resetDoudengForm() {
+    document.getElementById('dd-teacher').value = '';
+    document.getElementById('dd-name').value = '';
+    document.getElementById('dd-doutype').value = '';
+    document.getElementById('dd-type').value = '';
+    document.getElementById('dd-position').value = '';
+    document.getElementById('dd-start').value = todayMonth();
+    document.getElementById('dd-note').value = '';
+    document.getElementById('dd-tiangan').value = '';
+    document.getElementById('dd-dizhi').value = '';
+    document.getElementById('next-id-doudeng').className = 'id-display empty';
+    document.getElementById('next-id-doudeng').textContent = '請先選擇老師';
+  }
+  
+  async function submitDoudeng() {
+    const teacher = document.getElementById('dd-teacher').value;
+    const name = document.getElementById('dd-name').value.trim();
+    const douType = document.getElementById('dd-doutype').value;
+    const type = document.getElementById('dd-type').value;
+    const position = document.getElementById('dd-position').value.trim();
+    const start = document.getElementById('dd-start').value;
+    const note = document.getElementById('dd-note').value.trim();
+    const tiangan = document.getElementById('dd-tiangan').value;
+    const dizhi = document.getElementById('dd-dizhi').value;
+    
+    if (!teacher) { showToast('請選老師', 'error'); return; }
+    if (!name) { showToast('請填客戶姓名', 'error'); return; }
+    if (!douType) { showToast('請選斗種', 'error'); return; }
+    if (!type) { showToast('請選類型', 'error'); return; }
+    if (!start) { showToast('請選安斗月份', 'error'); return; }
+    
+    // 令牌選填:任何斗都可加, 但若選了天干就一定要選地支(反之亦然)
+    if ((tiangan && !dizhi) || (!tiangan && dizhi)) {
+      showToast('令牌需同時選天干與地支', 'error');
+      return;
+    }
+    const lingpai = (tiangan && dizhi) ? (tiangan + dizhi) : '';
+    
+    const btn = document.getElementById('submit-doudeng');
+    btn.disabled = true; btn.textContent = '處 理 中…';
+    try {
+      const payload = { teacher, name, douType, type, position, startMonth: start, note, lingpai };
+      const res = await authedApi({ action: 'addDoudeng', payload: JSON.stringify(payload) });
+      if (res.ok) {
+        showToast('新增斗燈成功！編號：' + (res.data && res.data.no), 'success');
+        resetDoudengForm();
+      } else {
+        showToast('新增失敗：' + (res.error || ''), 'error');
+      }
+    } catch (e) {
+      showToast('連線失敗：' + e.message, 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = '新　增　斗　燈';
+    }
+  }
+  
+  // ========== 本月燒化 ==========
+  async function loadBurn() {
+    const month = document.getElementById('burn-month').value;
+    const teacher = document.getElementById('burn-teacher').value;
+    if (!month) return;
+    
+    const content = document.getElementById('burn-content');
+    content.innerHTML = '<div class="empty-hint">載入中...</div>';
+    document.getElementById('burn-stats').style.display = 'none';
+    
+    try {
+      const res = await authedApi({ action: 'getMonthlyBurn', month: month, teacher: teacher });
+      if (!res.ok) { content.innerHTML = '<div class="empty-hint">查詢失敗</div>'; return; }
+      const data = res.data || {};
+      const customers = data.customers || [];
+      
+      // 上方總數區塊 — 醒目
+      const stats = document.getElementById('burn-stats');
+      stats.style.display = 'grid';
+      stats.innerHTML = `
+        <div class="stat-card crimson"><div class="stat-label">合約份數</div><div class="stat-value">${customers.length}</div></div>
+        <div class="stat-card"><div class="stat-label">萬寶金總份數</div><div class="stat-value">${data.totalWbj || 0}</div></div>
+        <div class="stat-card"><div class="stat-label">天赦金總份數</div><div class="stat-value">${data.totalTsj || 0}</div></div>
+        <div class="stat-card"><div class="stat-label">查詢月份</div><div class="stat-value" style="font-size:20px;">${month}</div></div>
+      `;
+      
+      if (customers.length === 0) {
+        content.innerHTML = '<div class="empty-hint"><div class="big">無資料</div>本月沒有需燒化的客戶</div>';
+        return;
+      }
+      
+      // 按老師分組
+      const byTeacher = {};
+      customers.forEach(c => {
+        const t = c.teacher || '未知';
+        if (!byTeacher[t]) byTeacher[t] = { customers: [], wbj: 0, tsj: 0, fee: 0 };
+        byTeacher[t].customers.push(c);
+        byTeacher[t].wbj += Number(c.wbj) || 0;
+        byTeacher[t].tsj += Number(c.tsj) || 0;
+        byTeacher[t].fee += Number(c.fee) || 0;
+      });
+      
+      const teachersSorted = Object.keys(byTeacher).sort((a,b) => byTeacher[b].wbj - byTeacher[a].wbj);
+      
+      let html = '<div style="margin-top:8px;">';
+      teachersSorted.forEach((t, idx) => {
+        const g = byTeacher[t];
+        const groupId = 'burn-grp-' + idx;
+        html += `<div style="border:1px solid var(--border); border-radius:8px; margin-bottom:10px; overflow:hidden;">
+          <div onclick="document.getElementById('${groupId}').classList.toggle('show'); this.querySelector('.arr').textContent = document.getElementById('${groupId}').classList.contains('show') ? '▼' : '▶';" 
+               style="padding:14px 16px; background:var(--bg-input); cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <span class="arr" style="display:inline-block; width:16px;">▶</span>
+              <strong style="font-size:15px;">${esc(t)}</strong>
+              <span style="color:var(--ink-light); font-size:13px; margin-left:8px;">${g.customers.length} 份合約</span>
+            </div>
+            <div style="font-size:14px;">
+              萬寶 <strong style="color:var(--gold-deep); font-size:18px;">${g.wbj}</strong>
+              <span style="color:var(--ink-faint);"> ・ </span>
+              天赦 <strong style="color:var(--gold-deep); font-size:18px;">${g.tsj}</strong>
+              <span style="color:var(--ink-faint);"> ・ </span>
+              月費 <strong>${num(g.fee)}</strong>
+            </div>
+          </div>
+          <div id="${groupId}" class="burn-group-body" style="display:none; padding:0;">
+            <table class="data-table" style="margin:0;">
+              <thead><tr><th>客戶 ID</th><th>姓名</th><th>月費</th><th>起始</th><th>到期</th><th>萬寶金</th><th>天赦金</th><th>贈年斗</th></tr></thead>
+              <tbody>`;
+        g.customers.forEach(c => {
+          html += `<tr>
+            <td><strong>${esc(c.customerId)}</strong></td>
+            <td>${esc(c.name)}</td>
+            <td>${num(c.fee)}</td>
+            <td style="font-size:12px;">${esc(c.startMonth)}</td>
+            <td style="font-size:12px;">${esc(c.endMonth)}</td>
+            <td>${num(c.wbj)}</td>
+            <td>${num(c.tsj)}</td>
+            <td>${esc(c.giftDouType||'-')}</td>
+          </tr>`;
+        });
+        html += `</tbody></table>
+          </div>
+        </div>`;
+      });
+      html += '</div>';
+      
+      // 加 .show class 樣式
+      html += '<style>.burn-group-body.show{display:block!important;}</style>';
+      content.innerHTML = html;
+    } catch (e) {
+      content.innerHTML = '<div class="empty-hint">連線失敗</div>';
+    }
+  }
+  
+  // ========== 本月撤斗 ==========
+  async function loadRetire() {
+    const month = document.getElementById('retire-month').value;
+    const teacher = document.getElementById('retire-teacher').value;
+    if (!month) return;
+    
+    const content = document.getElementById('retire-content');
+    content.innerHTML = '<div class="empty-hint">載入中...</div>';
+    
+    try {
+      const res = await authedApi({ action: 'getRetireList', month: month, teacher: teacher });
+      if (!res.ok) { content.innerHTML = '<div class="empty-hint">查詢失敗</div>'; return; }
+      const lamps = (res.data && res.data.lamps) || [];
+      
+      if (lamps.length === 0) {
+        content.innerHTML = '<div class="empty-hint"><div class="big">無資料</div>本月沒有需撤的斗燈</div>';
+        return;
+      }
+      
+      let html = `<div style="margin-bottom:16px;color:var(--ink-light);">共 <strong style="color:var(--ink);">${lamps.length}</strong> 筆需撤斗</div>`;
+      html += '<table class="data-table"><thead><tr><th>編號</th><th>客戶 ID</th><th>姓名</th><th>老師</th><th>斗種</th><th>架位</th><th>類型</th><th>令牌</th><th>應撤月</th><th>已撤</th></tr></thead><tbody>';
+      lamps.forEach(l => {
+        const retired = l.retired === '是' 
+          ? '<span class="badge badge-active">已撤</span>' 
+          : '<span class="badge badge-expire">待撤</span>';
+        html += `<tr>
+          <td>${esc(l.no)}</td>
+          <td>${esc(l.customerId)}</td>
+          <td>${esc(l.name)}</td>
+          <td>${esc(l.teacher)}</td>
+          <td>${esc(l.douType)}</td>
+          <td>${esc(l.position)}</td>
+          <td>${esc(l.type)}</td>
+          <td style="color:var(--gold-deep);">${esc(l.lingpai || '-')}</td>
+          <td>${esc(l.endMonth)}</td>
+          <td>${retired}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      content.innerHTML = html;
+    } catch (e) {
+      content.innerHTML = '<div class="empty-hint">連線失敗</div>';
+    }
+  }
+  
+  // ========== 包年業績 ==========
+  async function loadTrend() {
+    const teacher = document.getElementById('trend-teacher').value;
+    const year = document.getElementById('trend-year').value;
+    
+    const content = document.getElementById('trend-content');
+    if (!teacher || !year) {
+      content.innerHTML = '<div class="empty-hint">請選擇老師和年份</div>';
+      return;
+    }
+    content.innerHTML = '<div class="empty-hint">載入中...</div>';
+    
+    try {
+      const res = await authedApi({ action: 'getYearlyTrend', teacher: teacher, year: year });
+      if (!res.ok) { content.innerHTML = '<div class="empty-hint">查詢失敗</div>'; return; }
+      const months = (res.data && res.data.months) || [];
+      
+      let totalWbj = 0, totalTsj = 0, totalCustomers = 0;
+      months.forEach(m => { totalWbj += m.wbj; totalTsj += m.tsj; if (m.customerCount > totalCustomers) totalCustomers = m.customerCount; });
+      
+      let html = `<div class="stats-row" style="margin-bottom:24px;">
+        <div class="stat-card crimson"><div class="stat-label">${esc(teacher)} ・ ${year}</div><div class="stat-value" style="font-size:20px;">年度</div></div>
+        <div class="stat-card"><div class="stat-label">最高同時客戶數</div><div class="stat-value">${totalCustomers}</div></div>
+        <div class="stat-card"><div class="stat-label">全年萬寶金總</div><div class="stat-value">${totalWbj}</div></div>
+        <div class="stat-card"><div class="stat-label">全年天赦金總</div><div class="stat-value">${totalTsj}</div></div>
+      </div>`;
+      
+      html += '<table class="data-table"><thead><tr><th>月份</th><th>同時客戶</th><th>萬寶金</th><th>天赦金</th></tr></thead><tbody>';
+      months.forEach(m => {
+        html += `<tr>
+          <td><strong>${esc(m.monthLabel)}</strong></td>
+          <td>${m.customerCount}</td>
+          <td>${m.wbj}</td>
+          <td>${m.tsj}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      content.innerHTML = html;
+    } catch (e) {
+      content.innerHTML = '<div class="empty-hint">連線失敗</div>';
+    }
+  }
+  </script>
+</body>
+</html>
